@@ -124,7 +124,7 @@ try:
     # Step 6: Save CSV
     csv_header = ["Date", "Description", "Type", "Account", "Amount", "Status"]
     csv_rows = [csv_header] + unique_rows
-    with open("transactions.csv", "w", newline="", encoding="utf-8") as f:
+    with open("output/transactions.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         for row in csv_rows:
             writer.writerow([csv_escape(cell) for cell in row])
