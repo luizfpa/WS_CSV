@@ -17,7 +17,7 @@ def csv_escape(value):
 
  # Function to normalize monetary values
 def parse_amount(amount_str):
-    cleaned = amount_str.replace("−", "-").replace("$", "").replace(",", "")
+    cleaned = amount_str.replace("−", "-").replace("$", "").replace(",", "").replace("CAD", "").replace("cad", "")
     try:
         return float(cleaned)
     except ValueError:
@@ -124,7 +124,7 @@ try:
     # Step 6: Save CSV
     csv_header = ["Date", "Description", "Type", "Account", "Amount", "Status"]
     csv_rows = [csv_header] + unique_rows
-    with open("output/transactions.csv", "w", newline="", encoding="utf-8") as f:
+    with open("output/ws_transactions.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         for row in csv_rows:
             writer.writerow([csv_escape(cell) for cell in row])
@@ -141,3 +141,20 @@ except Exception as e:
 
 finally:
     driver.quit()
+
+# Post-process the CSV to ensure 'Amount' column is clean (no $ or CAD)
+try:
+    import pandas as pd
+    df = pd.read_csv('output/ws_transactions.csv')
+    if 'Amount' in df.columns:
+        df['Amount'] = df['Amount'].astype(str).str.replace('$', '', regex=False)
+        df['Amount'] = df['Amount'].str.replace('CAD', '', regex=False)
+        df['Amount'] = df['Amount'].str.replace(',', '', regex=False)
+        df['Amount'] = df['Amount'].str.strip()
+        df['Amount'] = df['Amount'].replace('', None)
+        # Try to convert to float, ignore errors
+        df['Amount'] = pd.to_numeric(df['Amount'], errors='ignore')
+        df.to_csv('output/ws_transactions.csv', index=False)
+        print("Post-processed CSV: cleaned 'Amount' column of $ and CAD.")
+except Exception as e:
+    print(f"Post-processing error: {e}")
