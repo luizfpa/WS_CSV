@@ -1,0 +1,28 @@
+# Wealthsimple CSV Export - Ignore Files
+
+# Output directory containing sensitive transaction data
+output/
+
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+
+# WebDriver binaries
+edgedriver_win64/
+msedgedriver.exe
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sensitive credentials
+credentials.json
+
+# Local environment variables
+.env
+
+# IDE / Editor settings
+.vscode/
+.idea/

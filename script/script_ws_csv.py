@@ -70,7 +70,11 @@ def parse_amount(amount_str):
     cleaned = cleaned.replace(",", "") # Remove thousands separator
     
     try:
-        return float(cleaned)
+        val = float(cleaned)
+        if val < 0:
+            return f"-${abs(val)}"
+        else:
+            return f"${val}"
     except ValueError:
         # If float conversion fails, return the original string but stripped of outer quotes
         return amount_str.strip('"').strip()
