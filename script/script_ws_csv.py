@@ -222,7 +222,8 @@ def scrape_transactions(driver):
                                      trans_type = line
                                 
                                 is_account_name = False
-                                if any(k in lower_line for k in ["chequing", "dia a dia", "wealthsimple", "cash", "tfsa", "rrsp", "crypto", "personal", "save", "spending", "account", "card"]):
+                                account_keywords = ["chequing", "dia a dia", "wealthsimple", "tfsa", "rrsp", "crypto", "personal", "spending", "joint account"]
+                                if any(k in lower_line for k in account_keywords) or lower_line in ["cash", "save", "account", "card"]:
                                     account = line
                                     is_account_name = True
                                 
@@ -247,6 +248,11 @@ def scrape_transactions(driver):
                             
                             if not account:
                                 account = "Wealthsimple Account"
+
+                            # Ignore "Credit card payment" as requested
+                            if "credit card payment" in full_text.lower():
+                                logging.info(f"Skipping payment transaction: {current_date} | {description}")
+                                continue
 
                             if amount:
                                 # Final cleanup of description
