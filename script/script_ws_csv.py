@@ -69,6 +69,24 @@ def scrape_transactions(driver):
         
         time.sleep(2)
         
+        # Click Load More first time
+        try:
+            btn = driver.find_element(By.XPATH, "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'load more')]")
+            btn.click()
+            time.sleep(3)
+        except:
+            pass
+        
+        time.sleep(2)
+        
+        # Scroll more to load additional transactions
+        for i in range(10):
+            driver.execute_script("window.scrollBy(0, 500)")
+            time.sleep(0.5)
+        
+        time.sleep(2)
+        
+        # Click Load More second time
         try:
             btn = driver.find_element(By.XPATH, "//button[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'load more')]")
             btn.click()
@@ -123,25 +141,46 @@ def scrape_transactions(driver):
                 amount = ""
                 date_text = "Today"
                 
+                # First pass: look for specific merchant patterns (lines with * are likely merchants)
                 for i, line in enumerate(lines):
-                    if '$' in line and ('-' in line or '−' in line):
-                        amount = line
-                    elif line in ['Purchase', 'Refund', 'Fee']:
-                        pass  # type we don't need separately
-                    elif re.match(r'^[A-Z][a-z]+\s+\d{1,2},\s+\d{4}$', line):
-                        date_text = line
-                    elif line and not merchant and len(line) > 2 and len(line) < 50:
-                        if not re.search(r'\d{4}', line):  # skip if contains year
+                    if '*' in line and len(line) > 3 and len(line) < 50:
+                        if not any(x in line for x in ['Purchase', 'Refund', 'Fee', 'Credit card']):
                             merchant = line
+                            break
                 
+                # Second pass: if no merchant found, try line before Purchase/Refund/Fee
                 if not merchant:
                     for i, line in enumerate(lines):
                         if line in ['Purchase', 'Refund', 'Fee']:
                             if i > 0:
                                 candidate = lines[i-1]
-                                if candidate and candidate not in ['Purchase', 'Refund', 'Fee', 'Credit card', 'Wealthsimple credit card']:
-                                    merchant = candidate
-                                    break
+                                # Valid merchant: not empty, not a keyword, reasonable length
+                                if candidate and len(candidate) > 2 and len(candidate) < 50:
+                                    if not any(x in candidate.lower() for x in ['purchase', 'refund', 'fee', 'credit card', 'today', 'scheduled', 'activity']):
+                                        merchant = candidate
+                                        break
+                
+                # Third pass: any reasonable text line that's not amount/date/type
+                if not merchant:
+                    for line in lines:
+                        if '$' not in line and 'CAD' not in line and '-' not in line[:2]:
+                            if line and len(line) > 2 and len(line) < 50:
+                                if not re.match(r'^[A-Z][a-z]+\s+\d{1,2},\s+\d{4}$', line):
+                                    if 'purchase' not in line.lower() and 'refund' not in line.lower():
+                                        merchant = line
+                                        break
+                
+                # Get amount
+                for line in lines:
+                    if '$' in line and ('-' in line or '−' in line):
+                        amount = line
+                        break
+                
+                # Get inline date if present
+                for line in lines:
+                    if re.match(r'^[A-Z][a-z]+\s+\d{1,2},\s+\d{4}$', line):
+                        date_text = line
+                        break
                 
                 if not merchant or not amount:
                     continue
