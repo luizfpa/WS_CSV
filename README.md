@@ -55,10 +55,10 @@ This Python script uses Selenium to scrape credit card transactions from the Wea
 2. The script opens the Wealthsimple login page in Microsoft Edge. Log in manually.
 3. Navigate to the credit card transactions page in the Wealthsimple web interface.
 4. Press Enter in the terminal when prompted.
-5. The script scrolls the page to load all transactions, extracts them, and saves them to `output/transactions.csv`.
+5. The script scrolls the page to load all transactions, extracts them, and saves them to `output/ws_transactions_<account_name>.csv`.
 
 ## Expected Output
-The script generates a CSV file (`output/transactions.csv`) with the following columns:
+The script generates a CSV file (e.g., `output/ws_transactions_credit_card.csv` or `output/ws_transactions_chequing_account.csv`) with the following columns:
 - **Date**: Transaction date (YYYY-MM-DD).
 - **Description**: Transaction description (e.g., "Real Cdn Superstore #1561").
 - **Type**: Transaction type (e.g., "Purchase", "Refund").
